@@ -110,33 +110,41 @@
     <script type="text/javascript" src="js/jquery.cookie.js"></script>
     <script type="text/javascript" src="js/jquery.md5.js"></script>
 <script>
-jQuery.ajaxSetup({async:false});
+$.ajaxSetup({
+    url: 'api/',
+    type: 'GET',
+    async: 'false',
+    dataType: 'json',
+    data: { 'tooken':$.cookie("tooken") },
+    beforeSend: function() {
+                 if (!($.cookie('tooken'))) {
+                   $(window).attr('location','login.html');
+                 }
+             },
+             success: function(data){
+               if(data.code == "403"){
+                   $(window).attr('location','login.html');
+               }
+             }
+});
 var ids = ["#temp_sun_outdor_value", "#temp_shadow_outdor_value"];
 var names = ["28_000005475d6d","28_00000448abc3"];
 var vals = [" °C", " °C"];
+
 for (var i = 0; i < 2; i++) {
-  $.ajax({
-     type: 'GET',
-     dataType: 'json',
-     url: 'api/',
-     data: {tooken:$.cookie("tooken"),dev:names[i],data:"now"},
+ $.ajax({
+     data: {'dev':names[i],'data':'now'},
          success: function(data){
            if(data.code == "200"){
-               $(ids[i]).html(Math.round(data.data*10)/10+vals[i]);
+              //  $(ids[i]).html(Math.round(data.data*10)/10);
+                $(ids[i]).html(Math.round(data.data*10)/10+vals[i]);
+                alert(data.data);
            }
          }
  });
-}
- $.ajax({
-    Type: 'GET',
-    url: 'api/',
-    data: {tooken:$.cookie("tooken")},
-        success: function(data){
-          if(data.code == "403"){
-              $(window).attr('location','login.html');
-          }
-        }
-});
+ }
+
+
 // var key ="act";
 // var s = window.location.search;
 // s = s.match(new RegExp(key + '=([^&=]+)'));

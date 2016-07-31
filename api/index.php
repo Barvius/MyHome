@@ -26,6 +26,21 @@ $lamp_list = array(
 );
 
 // main
+// проверка токена
+if(isset($_GET['tooken'])){
+  $results =$db_users->query('SELECT * FROM user');
+  while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
+    if ($_GET['tooken'] == hash('sha256', $_SERVER['REMOTE_ADDR'] + $rr['password'])) {
+      $authorized_user = $rr['user'];
+    }
+  }
+  if (!$authorized_user) {
+    echo json_encode(array('code' => '403'));
+    $motion = 1;
+  }
+}
+// проверка токена
+
 if(isset($_GET['act'])){
   switch ($_GET['act']){
     //авторизация и выдача токена
@@ -37,30 +52,19 @@ if(isset($_GET['act'])){
                 if($_GET['password'] == $rr['password']){
                   echo json_encode(array('code' => '200', 'user' => $_GET['user'], 'tooken' => hash('sha256', $_SERVER['REMOTE_ADDR'] + $_GET['password'])));
                   $authorized = 1;
+                  $motion = 1;
                 }
               }
             }
           }
           if (!$authorized) {
             echo json_encode(array('code' => '403'));
+            $motion = 1;
           }
       break;
     //авторизация и выдача токена
 }
 }
-// проверка токена
-if(isset($_GET['tooken'])){
-  $results =$db_users->query('SELECT * FROM user');
-  while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
-    if ($_GET['tooken'] == hash('sha256', $_SERVER['REMOTE_ADDR'] + $rr['password'])) {
-      $authorized_user = $rr['user'];
-    }
-  }
-  if (!$authorized_user) {
-    echo json_encode(array('code' => '403'));
-  }
-}
-// проверка токена
 
 if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($_GET['data']) and $authorized_user){
     switch ($_GET['data']){
@@ -97,9 +101,12 @@ if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($
         $motion = 1;
       break;
     }
-    echo json_encode($da);
+    if ($da) {
+        echo json_encode($da);
+    }
+
 }
-if (isset($_GET['lamp']) and isset($_GET['lamp_act'])) {
+if (isset($_GET['lamp']) and isset($_GET['lamp_act']) and $authorized_user) {
   switch ($_GET['lamp_act']){
     case 'on':
       exec('echo 0 > /sys/class/gpio/'.$lamp_list[$_GET['lamp']].'/value');
@@ -128,9 +135,9 @@ if (isset($_GET['lamp']) and isset($_GET['lamp_act'])) {
     break;
   }
 }
-// if (!$motion) {
-//   echo json_encode(array('code' => '404'));
-// }
+if (!$motion) {
+  echo json_encode(array('code' => '404'));
+}
 
 
 //     if($auth == 1){
