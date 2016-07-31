@@ -57,14 +57,14 @@
                             <a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Домой</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Датчики<span class="fa arrow"></span></a>
+                            <a href="sensors.html"><i class="fa fa-bar-chart-o fa-fw"></i> Датчики</a>
                             <!-- /.nav-second-level -->
                         </li>
                         <li>
-                            <a href="tables.html"><i class="fa fa-table fa-fw"></i> Освещение</a>
+                            <a href="light.html"><i class="fa fa-lightbulb-o fa-fw"></i> Освещение</a>
                         </li>
                         <li>
-                            <a href="forms.html"><i class="fa fa-edit fa-fw"></i> Система отопления</a>
+                            <a href="kotel.html"><i class="fa fa-building-o fa-fw"></i> Система отопления</a>
                         </li>
 
                     </ul>
@@ -76,19 +76,79 @@
 
         <!-- Page Content -->
         <div id="page-wrapper">
-            <div class="container-fluid">
-              <div class="list-group">
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-comment fa-fw"></i> Температура на солнышке
-                                    <span class="pull-right text-muted small"><div id="temp_sun_outdor_value"></div>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-comment fa-fw"></i> Температура в тени
-                                    <span class="pull-right text-muted small"><div id="temp_shadow_outdor_value"></div>
-                                    </span>
-                                </a>
+          <div class="row">
+                <div class="col-lg-12">
+                    <h2>Датчики</h2>
+                    <hr>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <div class="row">
+              <div class="col-lg-6">
+                <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong class="text-primary">Улица</strong>
+                        </div>
+                        <div class="panel-body">
+                            <div class="list-group">
+                              <a href="charts.html?dev=28_000005475d6d" class="list-group-item">
+                                <strong class="text-primary">Температура на солнышке</strong>
+                                <span class="pull-right text-muted small"><strong class="text-primary" id="temp_sun_outdor_value"></strong>
+                                </span>
+                              </a>
+                              <a href="charts.html?dev=28_00000448abc3" class="list-group-item">
+                                <strong class="text-primary">Температура в тени</strong>
+                                <span class="pull-right text-muted small"><strong class="text-primary" id="temp_shadow_outdor_value"></strong>
+                                </span>
+                              </a>
+                              <a href="charts.html?dev=35_000002793ac7" class="list-group-item">
+                                <strong class="text-primary">Влажность</strong>
+                                <span class="pull-right text-muted small"><strong class="text-primary" id="humi_outdor_value"></strong>
+                                </span>
+                              </a>
+                              <a href="charts.html?dev=81_000000000001" class="list-group-item">
+                                <strong class="text-primary">Давление</strong>
+                                <span class="pull-right text-muted small"><strong class="text-primary" id="pressure_outdor_value"></strong>
+                                </span>
+                              </a>
+                              <a href="charts.html?dev=28_0a020b08010d" class="list-group-item">
+                                <strong class="text-primary">Скорость ветра</strong>
+                                <span class="pull-right text-muted small"><strong class="text-primary" id="wind_speed_outdor_value"></strong>
+                                </span>
+                              </a>
                             </div>
+                        </div>
+                    </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <strong class="text-primary">Дом</strong>
+                    </div>
+                    <div class="panel-body">
+                      <div class="list-group">
+                        <a href="charts.html?dev=28_0415a30f63ff" class="list-group-item">
+                            <strong class="text-primary">Температура</strong>
+                            <span class="pull-right text-muted small"><strong class="text-primary" id="temp_indor_value"></strong>
+                            </span>
+                        </a>
+                        <a href="charts.html?dev=35_0000034fab33" class="list-group-item">
+                            <strong class="text-primary">Влажность</strong>
+                            <span class="pull-right text-muted small"><strong class="text-primary" id="humi_indor_value"></strong>
+                            </span>
+                        </a>
+                        <a href="charts.html?dev=28_000004e4fd40" class="list-group-item">
+                            <strong class="text-primary">Система отопления</strong>
+                            <span class="pull-right text-muted small"><strong class="text-primary" id="temp_kotel_value"></strong>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+      </div>
+        </div>
+
+
+
             <!-- /.container-fluid -->
         </div>
         <!-- /#page-wrapper -->
@@ -112,8 +172,8 @@
 <script>
 $.ajaxSetup({
     url: 'api/',
+    async: false,
     type: 'GET',
-    async: 'false',
     dataType: 'json',
     data: { 'tooken':$.cookie("tooken") },
     beforeSend: function() {
@@ -127,23 +187,20 @@ $.ajaxSetup({
                }
              }
 });
-var ids = ["#temp_sun_outdor_value", "#temp_shadow_outdor_value"];
-var names = ["28_000005475d6d","28_00000448abc3"];
-var vals = [" °C", " °C"];
+var ids = ["#temp_sun_outdor_value", "#temp_shadow_outdor_value", "#humi_outdor_value", "#pressure_outdor_value", "#wind_speed_outdor_value", "#temp_indor_value", "#humi_indor_value", "#temp_kotel_value"];
+var names = ["28_000005475d6d", "28_00000448abc3", "35_000002793ac7", "81_000000000001", "28_0a020b08010d", "28_0415a30f63ff", "35_0000034fab33", "28_000004e4fd40"];
+var vals = [" °C", " °C", " %", " ммРтСт", " м/с", " °C", "%", " °C"];
 
-for (var i = 0; i < 2; i++) {
+for (var i = 0; i < ids.length; i++) {
  $.ajax({
      data: {'dev':names[i],'data':'now'},
          success: function(data){
            if(data.code == "200"){
-              //  $(ids[i]).html(Math.round(data.data*10)/10);
-                $(ids[i]).html(Math.round(data.data*10)/10+vals[i]);
-                alert(data.data);
-           }
-         }
+              $(ids[i]).html(Math.round(data.data*10)/10+vals[i]);
+            }
+          }
  });
  }
-
 
 // var key ="act";
 // var s = window.location.search;
