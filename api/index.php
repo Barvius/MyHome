@@ -26,7 +26,6 @@ $lamp_list = array(
   '3' => 'gpio25',
   '4' => 'gpio8'
 );
-
 // main
 // проверка токена
 if(isset($_GET['tooken'])){
@@ -42,7 +41,6 @@ if(isset($_GET['tooken'])){
   }
 }
 // проверка токена
-
 if(isset($_GET['act'])){
   switch ($_GET['act']){
     //авторизация и выдача токена
@@ -65,9 +63,8 @@ if(isset($_GET['act'])){
           }
       break;
     //авторизация и выдача токена
+  }
 }
-}
-
 if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($_GET['data']) and $authorized_user){
     switch ($_GET['data']){
       case 'all':
@@ -75,7 +72,7 @@ if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($
             while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
                 $data[] = array( ($rr['date']+10800)*1000, $rr['data']);
             }
-        $da = array('code' => '200', 'id' => $_GET['dev'], 'data' => $data);
+        echo json_encode(array('code' => '200', 'id' => $_GET['dev'], 'data' => $data));
         $motion = 1;
       break;
       case 'day':
@@ -91,7 +88,7 @@ if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($
             while($rr = $results->fetchArray(SQLITE3_ASSOC)){
                 $max = $rr['data'];
             }
-        $da = array('code' => '200', 'id' => $_GET['dev'], 'min' => $min, 'max' => $max, 'data' => $data);
+        echo json_encode(array('code' => '200', 'id' => $_GET['dev'], 'min' => $min, 'max' => $max, 'data' => $data));
         $motion = 1;
       break;
       case 'now':
@@ -99,14 +96,10 @@ if (isset($_GET['dev']) and in_array($_GET['dev'], $sens_list['id']) and isset($
             while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
                 $data = $rr['data'];
             }
-        $da = array('code' => '200', 'id' => $_GET['dev'], 'data' => $data);
+        echo json_encode(array('code' => '200', 'id' => $_GET['dev'], 'data' => $data));
         $motion = 1;
       break;
     }
-    if ($da) {
-        echo json_encode($da);
-    }
-
 }
 if (isset($_GET['lamp']) and isset($_GET['lamp_act']) and $authorized_user) {
   switch ($_GET['lamp_act']){
@@ -131,112 +124,82 @@ if (isset($_GET['lamp']) and isset($_GET['lamp_act']) and $authorized_user) {
           while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
               $data[] = array($rr['date'], $rr['user'], $rr['ip'], $rr['action']);
           }
-      $da = array('code' => '200', 'name' => 'lamp-'.$_GET['lamp'], 'log' => $data);
-      echo json_encode($da);
+      echo json_encode(array('code' => '200', 'name' => 'lamp-'.$_GET['lamp'], 'log' => $data));
       $motion = 1;
+    break;
+  }
+}
+//heating_system
+if (isset($_GET['heating_system']) and $authorized_user) {
+  switch ($_GET['heating_system']){
+    case 'get_mode':
+        echo json_encode(array('code' => '200', 'data' => array('name' => 'heating_system_mode', 'value' => exec('cat  /sys/class/gpio/gpio9/value'))));
+        $motion = 1;
+    break;
+    case 'set_mode':
+      if(isset($_GET['value']) and preg_match("/^[0-1]$/", $_GET['value'])){
+          echo exec("echo ".$_GET['value']." > /home/myhome/mode");
+          if($_GET['value'] == "1") $db_log_gpio->query(sprintf('INSERT INTO gpio9 ( date, user, ip, action ) VALUES ( "%s", "%s", "%s", "Mode Auto")',time(),$authorized_user,$_SERVER['REMOTE_ADDR']));
+          if($_GET['value'] == "0") $db_log_gpio->query(sprintf('INSERT INTO gpio9 ( date, user, ip, action ) VALUES ( "%s", "%s", "%s", "Mode Hand")',time(),$authorized_user,$_SERVER['REMOTE_ADDR']));
+          echo json_encode(array('code' => '200'));
+          $motion = 1;
+      }
+    break;
+    case 'get_max_temp':
+      echo json_encode(array('code' => '200', 'data' => array('name' => 'heating_system_max_temp', 'value' => exec('cat  /home/myhome/heating_system_max_temp'))));
+      $motion = 1;
+    break;
+    case 'get_min_temp':
+      echo json_encode(array('code' => '200', 'data' => array('name' => 'heating_system_min_temp', 'value' => exec('cat  /home/myhome/heating_system_min_temp'))));
+      $motion = 1;
+    break;
+    case 'set_max_temp':
+      if(isset($_GET['value']) and preg_match("/^[0-9]{2}$/", $_GET['value'])){
+          echo exec("echo ".$_GET['value']." > /home/myhome/heating_system_max_temp");
+          echo json_encode(array('code' => '200'));
+          $motion = 1;
+      }
+    break;
+    case 'set_min_temp':
+      if(isset($_GET['value']) and preg_match("/^[0-9]{2}$/", $_GET['value'])){
+          echo exec("echo ".$_GET['value']." > /home/myhome/heating_system_min_temp");
+          echo json_encode(array('code' => '200'));
+          $motion = 1;
+      }
+    break;
+    case 'pump':
+      if (isset($_GET['pump_act'])) {
+        switch ($_GET['pump_act']) {
+          case 'on':
+            exec('echo 1 > /sys/class/gpio/gpio9/value');
+            echo json_encode(array('code' => '200'));
+            $db_log_gpio->query(sprintf('INSERT INTO gpio9 ( date, user, ip, action ) VALUES ( "%s", "%s", "%s", "on")',time(),$authorized_user,$_SERVER['REMOTE_ADDR']));
+            $motion = 1;
+          break;
+          case 'off':
+            exec('echo 0 > /sys/class/gpio/gpio9/value');
+            echo json_encode(array('code' => '200'));
+            $db_log_gpio->query(sprintf('INSERT INTO gpio9 ( date, user, ip, action ) VALUES ( "%s", "%s", "%s", "off")',time(),$authorized_user,$_SERVER['REMOTE_ADDR']));
+            $motion = 1;
+          break;
+          case 'status':
+            echo json_encode(array('code' => '200', 'data' => array('name' => 'pump', 'value' => exec('cat  /sys/class/gpio/gpio9/value'))));
+            $motion = 1;
+          break;
+          case 'log':
+            $results = $db_log_gpio->query('SELECT * FROM gpio9 ORDER BY id;');
+                while($rr = $results->fetchArray(SQLITE3_ASSOC)) {
+                    $data[] = array($rr['date'], $rr['user'], $rr['ip'], $rr['action']);
+                }
+            echo json_encode(array('code' => '200', 'name' => 'pump', 'log' => $data));
+            $motion = 1;
+          break;
+      }
+    }
     break;
   }
 }
 if (!$motion) {
   echo json_encode(array('code' => '404'));
 }
-
-
-//     if($auth == 1){
-//
-//         //lamp 1
-//         if (isset($_GET['l1'])){
-//             switch ($_GET['l1']) {
-//                 case "on":
-//                     exec('echo 0 > /sys/class/gpio/gpio23/value');
-//                     exec("echo \"`date +%d.%m.%Y-%H:%M:%S`;".$ip.";".$user.";on\" >> /home/myhome/log/gpio23.log");
-//                     echo json_encode(array('code' => '200'));
-//                     $responce = "1";
-//                 break;
-//                 case "off":
-//                     exec('echo 1 > /sys/class/gpio/gpio23/value');
-//                     exec("echo \"`date +%d.%m.%Y-%H:%M:%S`;".$ip.";".$user.";off\" >> /home/myhome/log/gpio23.log");
-//                     echo json_encode(array('code' => '200'));
-//                     $responce = "1";
-//                 break;
-//                 case "st":
-//                     echo json_encode(array('code' => '200', 'data' => array('name' => 'lamp-1', 'value' => exec('cat  /sys/class/gpio/gpio23/value'))));
-// 			$responce = "1";
-//                 break;
-//                 case "log":
-//                     $s=0;
-//                     $log_file = file ('/home/myhome/log/gpio23.log');
-//                     for ($i=count($log_file)-1;$i>count($log_file)-16;$i--){
-//                         $s++;
-//                         $line = explode(';', $log_file[$i]);
-//                         $data[] = array(
-//                             'time' => $line[0],
-//                             'ip' => $line[1],
-//                             'user' => $line[2],
-//                             'motion' => str_replace(array("\n", "\r"), '', $line[3])
-//                         );
-//                         }
-//                     echo json_encode(array('code' => '200', 'data' => array('name' => 'log_lamp-1', 'value' => $data)));
-//                     $responce = "1";
-//                 break;
-//             }
-//         }
-//         //lamp1
-//         //lamp2
-//         if (isset($_GET['l2'])){
-//             switch ($_GET['l2']) {
-//                 case "on":
-//                     exec('echo 0 > /sys/class/gpio/gpio24/value');
-//                     exec("echo \"`date +%d.%m.%Y-%H:%M:%S`;".$ip.";".$user.";on\" >> /home/myhome/log/gpio24.log");
-//                     echo json_encode(array('code' => '200'));
-//                     $responce = "1";
-//                 break;
-//                 case "off":
-//                     exec('echo 1 > /sys/class/gpio/gpio24/value');
-//                     exec("echo \"`date +%d.%m.%Y-%H:%M:%S`;".$ip.";".$user.";off\" >> /home/myhome/log/gpio24.log");
-//                     echo json_encode(array('code' => '200'));
-//                     $responce = "1";
-//                 break;
-//                 case "st":
-//                     echo json_encode(array('code' => '200', 'data' => array('name' => 'lamp-2', 'value' => exec('cat  /sys/class/gpio/gpio24/value'))));
-//                 $responce = "1";
-// 		            break;
-//                 case "log":
-//                     $s=0;
-//                     $log_file = file ('/home/myhome/log/gpio24.log');
-//                     for ($i=count($log_file)-1;$i>count($log_file)-16;$i--){
-//                         $s++;
-//                         $line = explode(';', $log_file[$i]);
-//                         $data[] = array(
-//                             'time' => $line[0],
-//                             'ip' => $line[1],
-//                             'user' => $line[2],
-//                             'motion' => str_replace(array("\n", "\r"), '', $line[3])
-//                         );
-//                         }
-//                     echo json_encode(array('code' => '200', 'data' => array('name' => 'log_lamp-2', 'value' => $data)));
-//                     $responce = "1";
-//                 break;
-//             }
-//         }
-//         //lamp2
-//
-//             //resp = null
-//             if($responce == 0) echo json_encode(array('code' => '404'));
-//         // end of auth 1
-//         } else echo json_encode(array('code' => '403'));
-// } else echo json_encode(array('code' => '401'));
-//
-// function draw_charts($db,$period,$name,$scale,$title,$x_gr){
-//     exec ('/usr/bin/rrdtool graph /tmp/'.$name.'.png '.$x_gr.' --title "'.$title.'" --start -'.$period.' --alt-autoscale --slope-mode -c BACK#EEEEEE00 -c SHADEA#EEEEEE00 -c SHADEB#EEEEEE00 -c FONT#000000 -c CANVAS#FFFFFF00 -c GRID#a5a5a5 -c MGRID#FF9999 -c FRAME#5e5e5e -c ARROW#5e5e5e DEF:dev0=/home/myhome/rrd/'.$db.'.rrd:data:AVERAGE LINE1.5:dev0#000000: VDEF:min=dev0,MINIMUM LINE1:min#0000FF::dashes=5 VDEF:max=dev0,MAXIMUM LINE1:max#FF0000::dashes=5 GPRINT:dev0:MIN:"Минимум\:%8.2lf °C %s" GPRINT:dev0:MAX:"Максимум\:%8.2lf °C %s\l" ');
-//     return $name;
-// }
-//     //LINE1.5:dev0#000000
-//     //VDEF:avg=dev0,AVERAGE
-//     //LINE1:avg#00FF00::dashes=5
-//     //VDEF:min=dev0,MINIMUM
-//     //LINE1:min#0000FF::dashes=5
-//     //VDEF:max=dev0,MAXIMUM
-//     //LINE1:max#FF0000::dashes=5
-// ///////
 ?>
