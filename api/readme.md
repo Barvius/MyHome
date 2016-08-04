@@ -2,6 +2,9 @@
 
 Методы
 
+### Получение токена
+> ?user=%user&password=%password
+
 ### Получение метео-данных
 > ?tooken=%tooken&dev=%dev&data=%data
 
