@@ -2,7 +2,7 @@
 
 Методы
 
-** Получение метео-данных **
+### Получение метео-данных
 > ?tooken=%tooken&dev=%dev&data=%data
 
 %data может принимать
@@ -12,7 +12,7 @@ all - получение данных за весь период в json
 day - получение данных за день
 now - последняя строка из бд
  ```
-** Работа с освещением **
+### Работа с освещением 
 > ?tooken=%tooken&lamp=%lamp&lamp_act=%lamp_act
 
 %lamp может принимать номер лампы
@@ -23,4 +23,16 @@ on - включение
 off - выключение
 status - текущее состояние лампы в json
 log - вывод данных включения/выключения в json
+```
+
+### Работа с системой отопления
+> ?tooken=%tooken&heating_system=%heating_system
+%heating_system может принимать
+```
+get_mode - Получение текущего режима работы системы
+set_mode - Установка режима + GET value=[0,1]
+get_max_temp -
+get_min_yemp -
+set_max_temp -
+set_min_temp -
 ```
