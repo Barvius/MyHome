@@ -39,6 +39,7 @@ set_min_temp - Установка нижнего предела температ
 
 управление насосом
 > ?tooken=%tooken&heating_system=pump&pump_act=%pump_act
+
 %pump_act может принимать 
 ```
 on - включение
