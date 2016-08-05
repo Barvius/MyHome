@@ -3,7 +3,7 @@
 Методы
 
 ### Получение токена
-> ?user=%user&password=%password
+> ?act=login&user=%user&password=%password
 
 ### Получение метео-данных
 > ?tooken=%tooken&dev=%dev&data=%data
